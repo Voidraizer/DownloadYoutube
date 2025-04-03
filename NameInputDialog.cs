@@ -49,6 +49,12 @@ namespace DownloadYoutube
             Close();
         }
 
+        private void nameCancelButton_Click( object sender, EventArgs e )
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
+        }
+
         protected override CreateParams CreateParams
         {
             get
@@ -57,6 +63,16 @@ namespace DownloadYoutube
                 cp.ClassStyle |= 0x20000; // CS_DROPSHADOW
                 return cp;
             }
+        }
+
+        protected override bool ProcessCmdKey( ref Message msg, Keys keyData )
+        {
+            if( keyData == Keys.Escape )
+            {
+                nameCancelButton.PerformClick();
+                return true; // Indicate that the key press has been handled
+            }
+            return base.ProcessCmdKey( ref msg, keyData );
         }
     }
 }

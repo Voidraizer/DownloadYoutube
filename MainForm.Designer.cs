@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager( typeof( FormParent ) );
             MainDescriptionLabel = new Label();
             step1Label = new Label();
             step2Label = new Label();
@@ -42,6 +43,7 @@
             step4DirTextBox = new TextBox();
             step4DirSelectButton = new Button();
             mediaTypeVideoOnly = new RadioButton();
+            downloadProgressBar = new ProgressBar();
             SuspendLayout();
             // 
             // MainDescriptionLabel
@@ -236,11 +238,20 @@
             mediaTypeVideoOnly.UseVisualStyleBackColor = true;
             mediaTypeVideoOnly.CheckedChanged +=  mediaTypeVideoOnly_CheckedChanged ;
             // 
+            // downloadProgressBar
+            // 
+            downloadProgressBar.Location = new Point( 1, 562 );
+            downloadProgressBar.Name = "downloadProgressBar";
+            downloadProgressBar.Size = new Size( 800, 32 );
+            downloadProgressBar.Step = 1;
+            downloadProgressBar.TabIndex = 14;
+            // 
             // FormParent
             // 
             AutoScaleDimensions = new SizeF( 7F, 15F );
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size( 800, 589 );
+            Controls.Add( downloadProgressBar );
             Controls.Add( mediaTypeVideoOnly );
             Controls.Add( step4DirSelectButton );
             Controls.Add( step4DirTextBox );
@@ -256,6 +267,7 @@
             Controls.Add( step1Label );
             Controls.Add( MainDescriptionLabel );
             FormBorderStyle = FormBorderStyle.Fixed3D;
+            Icon = (Icon)resources.GetObject( "$this.Icon" );
             MaximizeBox = false;
             Name = "FormParent";
             StartPosition = FormStartPosition.CenterScreen;
@@ -280,5 +292,6 @@
         private TextBox step4DirTextBox;
         private Button step4DirSelectButton;
         private RadioButton mediaTypeVideoOnly;
+        private ProgressBar downloadProgressBar;
     }
 }

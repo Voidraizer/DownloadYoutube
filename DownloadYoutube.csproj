@@ -7,10 +7,24 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationIcon>YoutubeDownloader.ico</ApplicationIcon>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
     <AdditionalFiles Remove="app.manifest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="YoutubeDownloader_Full.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="YoutubeDownloader.ico" />
+    <EmbeddedResource Include="YoutubeDownloader_Full.png" />
   </ItemGroup>
 
   <ItemGroup>

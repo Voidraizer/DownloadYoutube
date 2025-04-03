@@ -32,6 +32,7 @@
             nameTextBox = new TextBox();
             nameExtLabel = new Label();
             nameConfirmButton = new Button();
+            nameCancelButton = new Button();
             SuspendLayout();
             // 
             // nameDescLabel
@@ -67,13 +68,24 @@
             // nameConfirmButton
             // 
             nameConfirmButton.Font = new Font( "Outfit SemiBold", 15F );
-            nameConfirmButton.Location = new Point( 159, 60 );
+            nameConfirmButton.Location = new Point( 254, 60 );
             nameConfirmButton.Name = "nameConfirmButton";
             nameConfirmButton.Size = new Size( 323, 33 );
             nameConfirmButton.TabIndex = 13;
             nameConfirmButton.Text = "Confirm (Enter)";
             nameConfirmButton.UseVisualStyleBackColor = true;
             nameConfirmButton.Click +=  nameConfirmButton_Click ;
+            // 
+            // nameCancelButton
+            // 
+            nameCancelButton.Font = new Font( "Outfit SemiBold", 15F );
+            nameCancelButton.Location = new Point( 21, 60 );
+            nameCancelButton.Name = "nameCancelButton";
+            nameCancelButton.Size = new Size( 217, 33 );
+            nameCancelButton.TabIndex = 14;
+            nameCancelButton.Text = "Cancel (Escape)";
+            nameCancelButton.UseVisualStyleBackColor = true;
+            nameCancelButton.Click +=  nameCancelButton_Click ;
             // 
             // NameInputDialog
             // 
@@ -83,6 +95,7 @@
             BackColor = SystemColors.Control;
             ClientSize = new Size( 600, 110 );
             ControlBox = false;
+            Controls.Add( nameCancelButton );
             Controls.Add( nameConfirmButton );
             Controls.Add( nameExtLabel );
             Controls.Add( nameTextBox );
@@ -108,5 +121,6 @@
         private TextBox nameTextBox;
         private Label nameExtLabel;
         private Button nameConfirmButton;
+        private Button nameCancelButton;
     }
 }

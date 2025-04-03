@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Reflection;
 using System.Windows.Forms;
 using YoutubeExplode;
 using YoutubeExplode.Videos;
@@ -10,12 +11,16 @@ namespace DownloadYoutube
     public partial class FormParent : Form
     {
         private Form overlayForm = new();
+        private const int WM_NCLBUTTONDOWN = 0xA1;
+        private const int HTSYSMENU = 0x3;
+        private Form pictureForm = new Form();
 
         public FormParent()
         {
             InitializeComponent();
             InitializeOverlayForm();
             AcceptButton = step5GoButton;
+            MouseClick += FormParent_MouseClick;
         }
 
         private void InitializeOverlayForm()
@@ -32,13 +37,84 @@ namespace DownloadYoutube
             };
         }
 
+        private void FormParent_MouseClick( object sender, MouseEventArgs e )
+        {
+            if( pictureForm != null && !pictureForm.IsDisposed )
+            {
+                pictureForm.Close();
+            }
+        }
+
+        protected override void WndProc( ref Message m )
+        {
+            if( m.Msg == WM_NCLBUTTONDOWN && m.WParam.ToInt32() == HTSYSMENU )
+            {
+                ShowPicture();
+                return;
+            }
+
+            base.WndProc( ref m );
+        }
+
+        private void ShowPicture()
+        {
+            if( pictureForm != null && !pictureForm.IsDisposed )
+            {
+                pictureForm.Close();
+            }
+
+            // Display the picture
+            pictureForm = new Form();
+            pictureForm.FormClosed += ( s, e ) => overlayForm.Hide();
+            pictureForm.Text = "Zhonya & River Download Youtube";
+            pictureForm.Size = new Size( 626, 626 );
+            pictureForm.Icon = Icon;
+            pictureForm.FormBorderStyle = FormBorderStyle.FixedSingle;
+            pictureForm.MinimizeBox = false;
+            pictureForm.MaximizeBox = false;
+
+            PictureBox pictureBox = new PictureBox();
+            pictureBox.Click += ( s, e ) => pictureForm.Close();
+            pictureBox.Dock = DockStyle.Fill;
+
+            // Load the image from embedded resources
+            var assembly = Assembly.GetExecutingAssembly();
+            using( var stream = assembly.GetManifestResourceStream( "DownloadYoutube.YoutubeDownloader_Full.png" ) )
+            {
+                if( stream == null )
+                {
+                    Debug.Print( "Stream is null" );
+                    return;
+                }
+
+                pictureBox.Image = Image.FromStream( stream );
+            }
+
+            pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+
+            pictureForm.Controls.Add( pictureBox );
+
+            // Center the picture form relative to the main form
+            pictureForm.StartPosition = FormStartPosition.Manual;
+            pictureForm.Location = new Point( Location.X + ( Width - pictureForm.Width ) / 2,
+                                             Location.Y + ( Height - pictureForm.Height ) / 2 );
+
+            // Close the popup when clicking on the parent form or pressing Escape
+            pictureForm.Deactivate += ( s, e ) => pictureForm.Close();
+            pictureForm.KeyDown += ( s, e ) => { if( e.KeyCode == Keys.Escape ) pictureForm.Close(); };
+            pictureForm.KeyPreview = true; // Ensure the form receives key events
+
+            overlayForm.Show();
+            pictureForm.Show();
+        }
+
         private void step1YoutubeLink_LinkClicked( object sender, LinkLabelLinkClickedEventArgs e )
         {
             // Set the link as visited
             step1YoutubeLink.LinkVisited = true;
 
             // Open the link in the default web browser
-            System.Diagnostics.Process.Start( new ProcessStartInfo
+            Process.Start( new ProcessStartInfo
             {
                 FileName = "https://www.youtube.com",
                 UseShellExecute = true
@@ -116,6 +192,11 @@ namespace DownloadYoutube
                     title = title.Replace( "Music Video", "" );
                 }
 
+                if( title.Contains( "()" ) )
+                {
+                    title = title.Replace( "()", "" ).Trim();
+                }
+
                 Debug.Print( $"Video Title: {video.Title}" );
 
                 var streamManifest = await youtube.Videos.Streams.GetManifestAsync( videoId );
@@ -159,6 +240,8 @@ namespace DownloadYoutube
 
                 string outputFilePath = string.Empty;
 
+                bool cancelled = false;
+
                 using( NameInputDialog nameInputDialog = new NameInputDialog( title, extension ) )
                 {
                     if( nameInputDialog.ShowDialog( this ) == DialogResult.OK )
@@ -166,32 +249,45 @@ namespace DownloadYoutube
                         outputFilePath = Path.Combine( step4DirTextBox.Text, nameInputDialog.InputText );
                         Debug.Print( $"File Name = {nameInputDialog.InputText}" );
                     }
+                    else
+                    {
+                        cancelled = true;
+                    }
                 }
 
                 overlayForm.Hide();
 
-                if( string.IsNullOrWhiteSpace( outputFilePath ) )
+                if( !cancelled )
                 {
-                    MessageBox.Show( $"Output file path is empty\n'{outputFilePath}' is invalid", "Output file path doesn't look right", MessageBoxButtons.OK, MessageBoxIcon.Error );
-                    return;
+                    if( string.IsNullOrWhiteSpace( outputFilePath ) )
+                    {
+                        MessageBox.Show( $"Output file path is empty\n'{outputFilePath}' is invalid", "Output file path doesn't look right", MessageBoxButtons.OK, MessageBoxIcon.Error );
+                        return;
+                    }
+
+                    Debug.Print( $"Output File Path: {outputFilePath}" );
+                    downloadProgressBar.Value = 0;
+                    YoutubeDownloader downloader = new YoutubeDownloader();
+
+                    IProgress<double> progress = new Progress<double>( percent =>
+                    {
+                        Debug.Print( $"Download Progress: {percent}%" );
+                        downloadProgressBar.Value = (int)( percent * 100 );
+                        downloadProgressBar.Value = Math.Max( 0, downloadProgressBar.Value - 1 ); // Force immediate update
+                        downloadProgressBar.Value = (int)( percent * 100 );
+
+                        if( percent >= 1 )
+                        {
+                            downloadProgressBar.Value = 0;
+                        }
+                    } );
+
+                    await downloader.DownloadFile( streamInfo, outputFilePath, progress );
                 }
-
-                Debug.Print( $"Output File Path: {outputFilePath}" );
-
-                YoutubeDownloader downloader = new YoutubeDownloader();
-
-                IProgress<double> progress = new Progress<double>( percent =>
-                {
-                    Debug.Print( $"Download Progress: {percent}%" );
-                    // Update the progress bar or any other UI element here
-                } );
-
-                await downloader.DownloadFile( streamInfo, outputFilePath, progress );
             }
             catch( Exception ex )
             {
                 Debug.Print( $"Error: {ex.Message}" );
-                // statusLabel.Text = $"Error: {ex.Message}";
             }
         }
 
