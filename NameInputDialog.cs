@@ -14,15 +14,18 @@ namespace DownloadYoutube
 {
     public partial class NameInputDialog : Form
     {
+        public string InputText { get; private set; } = string.Empty;
+
         public NameInputDialog()
         {
             InitializeComponent();
         }
 
-        public NameInputDialog( string defaultName )
+        public NameInputDialog( string defaultName, string extension )
         {
             InitializeComponent();
             nameTextBox.Text = defaultName;
+            nameExtLabel.Text = "." + extension;
         }
 
         private void NameInputDialog_Paint( object sender, PaintEventArgs e )
@@ -37,6 +40,13 @@ namespace DownloadYoutube
                 // Draw the border
                 e.Graphics.DrawRectangle( pen, new Rectangle( 0, 0, ClientSize.Width - 1, ClientSize.Height - 1 ) );
             }
+        }
+
+        private void nameConfirmButton_Click( object sender, EventArgs e )
+        {
+            DialogResult = DialogResult.OK;
+            InputText = nameTextBox.Text + nameExtLabel.Text;
+            Close();
         }
 
         protected override CreateParams CreateParams

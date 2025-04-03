@@ -48,9 +48,9 @@
             // nameTextBox
             // 
             nameTextBox.Font = new Font( "Outfit", 15F );
-            nameTextBox.Location = new Point( 159, 17 );
+            nameTextBox.Location = new Point( 159, 18 );
             nameTextBox.Name = "nameTextBox";
-            nameTextBox.Size = new Size( 361, 33 );
+            nameTextBox.Size = new Size( 323, 33 );
             nameTextBox.TabIndex = 9;
             // 
             // nameExtLabel
@@ -58,7 +58,7 @@
             nameExtLabel.AutoSize = true;
             nameExtLabel.Font = new Font( "Outfit", 20F );
             nameExtLabel.ForeColor = Color.Indigo;
-            nameExtLabel.Location = new Point( 526, 17 );
+            nameExtLabel.Location = new Point( 488, 16 );
             nameExtLabel.Name = "nameExtLabel";
             nameExtLabel.Size = new Size( 55, 34 );
             nameExtLabel.TabIndex = 10;
@@ -69,10 +69,11 @@
             nameConfirmButton.Font = new Font( "Outfit SemiBold", 15F );
             nameConfirmButton.Location = new Point( 159, 60 );
             nameConfirmButton.Name = "nameConfirmButton";
-            nameConfirmButton.Size = new Size( 361, 33 );
+            nameConfirmButton.Size = new Size( 323, 33 );
             nameConfirmButton.TabIndex = 13;
-            nameConfirmButton.Text = "Confirm";
+            nameConfirmButton.Text = "Confirm (Enter)";
             nameConfirmButton.UseVisualStyleBackColor = true;
+            nameConfirmButton.Click +=  nameConfirmButton_Click ;
             // 
             // NameInputDialog
             // 
@@ -80,7 +81,7 @@
             AutoScaleDimensions = new SizeF( 7F, 15F );
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
-            ClientSize = new Size( 593, 105 );
+            ClientSize = new Size( 600, 110 );
             ControlBox = false;
             Controls.Add( nameConfirmButton );
             Controls.Add( nameExtLabel );
@@ -93,7 +94,7 @@
             Name = "NameInputDialog";
             ShowIcon = false;
             ShowInTaskbar = false;
-            StartPosition = FormStartPosition.CenterScreen;
+            StartPosition = FormStartPosition.CenterParent;
             Text = "NameInputDialog";
             TopMost = true;
             Paint +=  NameInputDialog_Paint ;

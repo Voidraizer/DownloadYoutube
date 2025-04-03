@@ -41,6 +41,7 @@
             step4Label = new Label();
             step4DirTextBox = new TextBox();
             step4DirSelectButton = new Button();
+            mediaTypeVideoOnly = new RadioButton();
             SuspendLayout();
             // 
             // MainDescriptionLabel
@@ -154,6 +155,7 @@
             mediaTypeAudioVideo.AutoSize = true;
             mediaTypeAudioVideo.BackgroundImageLayout = ImageLayout.None;
             mediaTypeAudioVideo.Cursor = Cursors.Hand;
+            mediaTypeAudioVideo.Enabled = false;
             mediaTypeAudioVideo.FlatAppearance.BorderColor = Color.Indigo;
             mediaTypeAudioVideo.FlatAppearance.BorderSize = 3;
             mediaTypeAudioVideo.FlatAppearance.CheckedBackColor = Color.FromArgb( 192, 192, 255 );
@@ -161,7 +163,7 @@
             mediaTypeAudioVideo.FlatAppearance.MouseOverBackColor = Color.FromArgb( 210, 210, 255 );
             mediaTypeAudioVideo.FlatStyle = FlatStyle.Flat;
             mediaTypeAudioVideo.Font = new Font( "Outfit Medium", 20F );
-            mediaTypeAudioVideo.Location = new Point( 420, 321 );
+            mediaTypeAudioVideo.Location = new Point( 362, 321 );
             mediaTypeAudioVideo.Name = "mediaTypeAudioVideo";
             mediaTypeAudioVideo.Size = new Size( 196, 50 );
             mediaTypeAudioVideo.TabIndex = 4;
@@ -177,7 +179,7 @@
             step5GoButton.Name = "step5GoButton";
             step5GoButton.Size = new Size( 571, 50 );
             step5GoButton.TabIndex = 0;
-            step5GoButton.Text = "Start";
+            step5GoButton.Text = "Start (Enter)";
             step5GoButton.UseVisualStyleBackColor = true;
             step5GoButton.Click +=  step4GoButton_Click ;
             // 
@@ -212,11 +214,34 @@
             step4DirSelectButton.UseVisualStyleBackColor = true;
             step4DirSelectButton.Click +=  step4DirSelectButton_Click ;
             // 
+            // mediaTypeVideoOnly
+            // 
+            mediaTypeVideoOnly.Appearance = Appearance.Button;
+            mediaTypeVideoOnly.AutoSize = true;
+            mediaTypeVideoOnly.BackgroundImageLayout = ImageLayout.None;
+            mediaTypeVideoOnly.Cursor = Cursors.Hand;
+            mediaTypeVideoOnly.FlatAppearance.BorderColor = Color.Indigo;
+            mediaTypeVideoOnly.FlatAppearance.BorderSize = 3;
+            mediaTypeVideoOnly.FlatAppearance.CheckedBackColor = Color.FromArgb( 192, 192, 255 );
+            mediaTypeVideoOnly.FlatAppearance.MouseDownBackColor = Color.FromArgb( 160, 160, 255 );
+            mediaTypeVideoOnly.FlatAppearance.MouseOverBackColor = Color.FromArgb( 210, 210, 255 );
+            mediaTypeVideoOnly.FlatStyle = FlatStyle.Flat;
+            mediaTypeVideoOnly.Font = new Font( "Outfit Medium", 20F );
+            mediaTypeVideoOnly.Location = new Point( 583, 321 );
+            mediaTypeVideoOnly.Name = "mediaTypeVideoOnly";
+            mediaTypeVideoOnly.Size = new Size( 162, 50 );
+            mediaTypeVideoOnly.TabIndex = 13;
+            mediaTypeVideoOnly.Text = "Video Only";
+            mediaTypeVideoOnly.TextAlign = ContentAlignment.MiddleCenter;
+            mediaTypeVideoOnly.UseVisualStyleBackColor = true;
+            mediaTypeVideoOnly.CheckedChanged +=  mediaTypeVideoOnly_CheckedChanged ;
+            // 
             // FormParent
             // 
             AutoScaleDimensions = new SizeF( 7F, 15F );
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size( 800, 589 );
+            Controls.Add( mediaTypeVideoOnly );
             Controls.Add( step4DirSelectButton );
             Controls.Add( step4DirTextBox );
             Controls.Add( step4Label );
@@ -254,5 +279,6 @@
         private Label step4Label;
         private TextBox step4DirTextBox;
         private Button step4DirSelectButton;
+        private RadioButton mediaTypeVideoOnly;
     }
 }

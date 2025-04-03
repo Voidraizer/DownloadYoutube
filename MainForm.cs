@@ -9,7 +9,7 @@ namespace DownloadYoutube
 {
     public partial class FormParent : Form
     {
-        private Form overlayForm;
+        private Form overlayForm = new();
 
         public FormParent()
         {
@@ -17,18 +17,6 @@ namespace DownloadYoutube
             InitializeOverlayForm();
             AcceptButton = step5GoButton;
         }
-
-        //private void InitializeOverlayPanel()
-        //{
-        //    overlayPanel = new Panel
-        //    {
-        //        Dock = DockStyle.Fill,
-        //        BackColor = Color.FromArgb( 128, 255, 255, 255 ), // Semi-transparent white
-        //        Visible = false
-        //    };
-        //    Controls.Add( overlayPanel );
-        //    overlayPanel.BringToFront();
-        //}
 
         private void InitializeOverlayForm()
         {
@@ -38,7 +26,7 @@ namespace DownloadYoutube
                 StartPosition = FormStartPosition.Manual,
                 ShowInTaskbar = false,
                 BackColor = Color.Black,
-                Opacity = 0.5, // Adjust for desired fade effect
+                Opacity = 0.3, // Adjust for desired fade effect
                 Size = ClientSize,
                 Location = Location
             };
@@ -62,6 +50,7 @@ namespace DownloadYoutube
             if( mediaTypeAudioOnly.Checked )
             {
                 mediaTypeAudioVideo.Checked = false;
+                mediaTypeVideoOnly.Checked = false;
             }
         }
 
@@ -70,6 +59,16 @@ namespace DownloadYoutube
             if( mediaTypeAudioVideo.Checked )
             {
                 mediaTypeAudioOnly.Checked = false;
+                mediaTypeVideoOnly.Checked = false;
+            }
+        }
+
+        private void mediaTypeVideoOnly_CheckedChanged( object sender, EventArgs e )
+        {
+            if( mediaTypeAudioVideo.Checked )
+            {
+                mediaTypeAudioOnly.Checked = false;
+                mediaTypeAudioVideo.Checked = false;
             }
         }
 
@@ -101,37 +100,93 @@ namespace DownloadYoutube
 
             try
             {
-                var youtube = new YoutubeClient();
-                var videoId = YoutubeExplode.Videos.VideoId.Parse( url );
-                var video = await youtube.Videos.GetAsync( videoId );
+                YoutubeClient youtube = new YoutubeClient();
+                VideoId videoId = VideoId.Parse( url );
+                Video video = await youtube.Videos.GetAsync( videoId );
                 Debug.Print( $"Video ID: {videoId}" );
+
+                // get the video title and if it contains "Official Music Video" or "Music Video", remove that from the string
+                string title = video.Title;
+                if( title.Contains( "Official Music Video" ) )
+                {
+                    title = title.Replace( "Official Music Video", "" );
+                }
+                else if( title.Contains( "Music Video" ) )
+                {
+                    title = title.Replace( "Music Video", "" );
+                }
+
                 Debug.Print( $"Video Title: {video.Title}" );
-                //var outputFilePath = Path.Combine( Environment.CurrentDirectory, $"{videoId}.mp3" );
 
                 var streamManifest = await youtube.Videos.Streams.GetManifestAsync( videoId );
                 Debug.Print( $"Stream Manifest: {streamManifest}" );
 
-                var streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
-                Debug.Print( $"Stream Info: {streamInfo}" );
+                Debug.Print( $"{streamManifest.Streams.Count} streams available" );
+
+                IStreamInfo? streamInfo = null;
+
+                if( mediaTypeAudioOnly.Checked )
+                {
+                    streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
+                }
+                else if( mediaTypeAudioVideo.Checked )
+                {
+                    streamInfo = streamManifest.GetMuxedStreams().GetWithHighestBitrate();
+                }
+                else if( mediaTypeVideoOnly.Checked )
+                {
+                    streamInfo = streamManifest.GetVideoOnlyStreams().GetWithHighestBitrate();
+                }
+                else
+                {
+                    Debug.Print( "Unknown Media Type" );
+                }
+
+                if( streamInfo == null )
+                {
+                    Debug.Print( "Stream Info is null" );
+                    return;
+                }
+                Debug.Print( $"Stream Info: {streamInfo.Container.Name}" );
+
+                string extension = streamInfo.Container.Name;
+                Debug.Print( $"Extension: {extension}" );
 
                 overlayForm.Owner = this;
-                //overlayForm.Bounds = Bounds;
                 overlayForm.Size = ClientSize;
                 overlayForm.Location = PointToScreen( Point.Empty );
                 overlayForm.Show();
 
-                using( NameInputDialog nameInputDialog = new NameInputDialog( video.Title ) )
+                string outputFilePath = string.Empty;
+
+                using( NameInputDialog nameInputDialog = new NameInputDialog( title, extension ) )
                 {
-                    nameInputDialog.ShowDialog( this );
+                    if( nameInputDialog.ShowDialog( this ) == DialogResult.OK )
+                    {
+                        outputFilePath = Path.Combine( step4DirTextBox.Text, nameInputDialog.InputText );
+                        Debug.Print( $"File Name = {nameInputDialog.InputText}" );
+                    }
                 }
 
                 overlayForm.Hide();
 
-                //await youtube.Videos.Streams.DownloadAsync( streamInfo, outputFilePath );
+                if( string.IsNullOrWhiteSpace( outputFilePath ) )
+                {
+                    MessageBox.Show( $"Output file path is empty\n'{outputFilePath}' is invalid", "Output file path doesn't look right", MessageBoxButtons.OK, MessageBoxIcon.Error );
+                    return;
+                }
 
-                //// statusLabel.Text = "Downloading...";
-                //await youtube.Videos.DownloadAsync( url, outputFilePath, o => o.SetContainer( "mp3" ) );
-                //// statusLabel.Text = $"Download complete: {outputFilePath}";
+                Debug.Print( $"Output File Path: {outputFilePath}" );
+
+                YoutubeDownloader downloader = new YoutubeDownloader();
+
+                IProgress<double> progress = new Progress<double>( percent =>
+                {
+                    Debug.Print( $"Download Progress: {percent}%" );
+                    // Update the progress bar or any other UI element here
+                } );
+
+                await downloader.DownloadFile( streamInfo, outputFilePath, progress );
             }
             catch( Exception ex )
             {
