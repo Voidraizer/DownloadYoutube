@@ -46,4 +46,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <Target Name="PostPublish" AfterTargets="Publish">
+    <Exec Command="$(ProjectDir)SelfSignedCert_SignPublishedExe.bat" />
+  </Target>
+
 </Project>

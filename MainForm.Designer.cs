@@ -270,7 +270,7 @@
             Icon = (Icon)resources.GetObject( "$this.Icon" );
             MaximizeBox = false;
             Name = "FormParent";
-            StartPosition = FormStartPosition.CenterScreen;
+            StartPosition = FormStartPosition.Manual;
             Text = "DownloadYoutube";
             ResumeLayout( false );
             PerformLayout();

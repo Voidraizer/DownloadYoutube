@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Reflection;
@@ -10,6 +11,7 @@ namespace DownloadYoutube
 {
     public partial class FormParent : Form
     {
+        private string version = "1.0.1";
         private Form overlayForm = new();
         private const int WM_NCLBUTTONDOWN = 0xA1;
         private const int HTSYSMENU = 0x3;
@@ -20,7 +22,21 @@ namespace DownloadYoutube
             InitializeComponent();
             InitializeOverlayForm();
             AcceptButton = step5GoButton;
-            MouseClick += FormParent_MouseClick;
+            MouseClick += ( s, e ) => FormParent_MouseClick( s, e );
+
+            FormClosing += ( s, e ) =>
+            {
+                overlayForm?.Close();
+                pictureForm?.Close();
+                SaveSettingsToRegistry( step4DirTextBox.Text );
+            };
+
+            DoubleBuffered = true;
+            SetStyle( ControlStyles.OptimizedDoubleBuffer, true );
+            SetStyle( ControlStyles.AllPaintingInWmPaint, true );
+            SetStyle( ControlStyles.UserPaint, true );
+            Text = $"Zhonya & River Download Youtube - v{version}";
+            LoadSettingsFromRegistry();
         }
 
         private void InitializeOverlayForm()
@@ -37,7 +53,7 @@ namespace DownloadYoutube
             };
         }
 
-        private void FormParent_MouseClick( object sender, MouseEventArgs e )
+        private void FormParent_MouseClick( object? sender, MouseEventArgs e )
         {
             if( pictureForm != null && !pictureForm.IsDisposed )
             {
@@ -176,10 +192,18 @@ namespace DownloadYoutube
 
             try
             {
+                overlayForm.Owner = this;
+                overlayForm.Size = ClientSize;
+                overlayForm.Location = PointToScreen( Point.Empty );
+                overlayForm.Show();
+
                 YoutubeClient youtube = new YoutubeClient();
                 VideoId videoId = VideoId.Parse( url );
                 Video video = await youtube.Videos.GetAsync( videoId );
                 Debug.Print( $"Video ID: {videoId}" );
+
+                // throw test error
+                //throw new Exception( "Test error" );
 
                 // get the video title and if it contains "Official Music Video" or "Music Video", remove that from the string
                 string title = video.Title;
@@ -196,6 +220,8 @@ namespace DownloadYoutube
                 {
                     title = title.Replace( "()", "" ).Trim();
                 }
+
+                title = MakeFileNameSafe( title );
 
                 Debug.Print( $"Video Title: {video.Title}" );
 
@@ -233,13 +259,7 @@ namespace DownloadYoutube
                 string extension = streamInfo.Container.Name;
                 Debug.Print( $"Extension: {extension}" );
 
-                overlayForm.Owner = this;
-                overlayForm.Size = ClientSize;
-                overlayForm.Location = PointToScreen( Point.Empty );
-                overlayForm.Show();
-
                 string outputFilePath = string.Empty;
-
                 bool cancelled = false;
 
                 using( NameInputDialog nameInputDialog = new NameInputDialog( title, extension ) )
@@ -271,7 +291,7 @@ namespace DownloadYoutube
 
                     IProgress<double> progress = new Progress<double>( percent =>
                     {
-                        Debug.Print( $"Download Progress: {percent}%" );
+                        //Debug.Print( $"Download Progress: {percent}%" );
                         downloadProgressBar.Value = (int)( percent * 100 );
                         downloadProgressBar.Value = Math.Max( 0, downloadProgressBar.Value - 1 ); // Force immediate update
                         downloadProgressBar.Value = (int)( percent * 100 );
@@ -288,6 +308,9 @@ namespace DownloadYoutube
             catch( Exception ex )
             {
                 Debug.Print( $"Error: {ex.Message}" );
+                // Show message box of error
+                MessageBox.Show( this, $"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error );
+                overlayForm.Hide();
             }
         }
 
@@ -323,6 +346,54 @@ namespace DownloadYoutube
             if( overlayForm != null )
             {
                 overlayForm.Size = ClientSize;
+            }
+        }
+
+        protected string MakeFileNameSafe( string fileName )
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            return string.Concat( fileName.Split( invalidChars, StringSplitOptions.RemoveEmptyEntries ) ).Trim();
+        }
+
+        protected void SaveSettingsToRegistry( string lastDirectory )
+        {
+            // Previous Directory
+            RegistryKey key = Registry.CurrentUser.CreateSubKey( @"Software\DownloadYoutube" );
+            key.SetValue( "LastDirectory", lastDirectory );
+
+            // Previous Position
+            key.SetValue( "FormX", Location.X );
+            key.SetValue( "FormY", Location.Y );
+
+            key.Close();
+        }
+
+        protected void LoadSettingsFromRegistry()
+        {
+            RegistryKey? key = Registry.CurrentUser.OpenSubKey( @"Software\DownloadYoutube" );
+
+            if( key != null )
+            {
+                // Previous Directory
+                object? value = key.GetValue( "LastDirectory" );
+
+                if( value != null )
+                {
+                    step4DirTextBox.Text = value.ToString();
+                }
+
+                // Previous Position
+                object? xValue = key.GetValue( "FormX" );
+                object? yValue = key.GetValue( "FormY" );
+
+                if( xValue != null && yValue != null )
+                {
+                    int x = Convert.ToInt32( xValue );
+                    int y = Convert.ToInt32( yValue );
+
+                    // Set the form position
+                    Location = new Point( x, y );
+                }
             }
         }
     }
