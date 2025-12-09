@@ -47,7 +47,7 @@
   </ItemGroup>
 
   <Target Name="PostPublish" AfterTargets="Publish">
-    <Exec Command="$(ProjectDir)SelfSignedCert_SignPublishedExe.bat" />
+    <Exec Command="$(ProjectDir)Cert_SignPublishedExe.bat" />
   </Target>
 
 </Project>
